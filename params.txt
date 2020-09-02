@@ -1,8 +1,0 @@
-1000 n_hosts
-0.03 human_death_rate
-0.2 parasite_death_rate
-0.00005 contact_rate
-0.02 gamma
-0.25 k
-1.0 k_egg
-10.0 fecundity

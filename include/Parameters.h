@@ -13,6 +13,7 @@ struct Parameters
   double k;
   double k_egg;
   double fecundity;
+  double spat_kernel_magnitude;
 };
 
 double read_line(std::ifstream& myfile);

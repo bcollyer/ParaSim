@@ -58,8 +58,8 @@ Population create_population(int nhosts, double m, double k, double x, double y)
     rate = 0.5 * person.risk * m;
     burden.male_worms = gsl_ran_poisson(rando,rate);
     burden.female_worms = gsl_ran_poisson(rando,rate);
-    burden.eggs = 0;
-    burden.eggs_test = 0;
+    burden.eggs = gsl_ran_poisson(rando,rate);
+    burden.eggs_test = gsl_ran_poisson(rando,rate);
 
 
     person.burden = burden;

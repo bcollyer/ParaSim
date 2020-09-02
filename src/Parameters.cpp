@@ -24,7 +24,7 @@ Parameters read_from_file(std::string filename)
     parameters.k = read_line(myfile);
     parameters.k_egg = read_line(myfile);
     parameters.fecundity = read_line(myfile);
-
+    parameters.spat_kernel_magnitude = read_line(myfile);
   };
 
   return parameters;

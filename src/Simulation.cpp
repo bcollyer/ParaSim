@@ -2,6 +2,7 @@
 //#include <gsl/gsl_randist.h>
 #include <ctime>
 #include <cmath>
+#include <sstream>
 #include "Simulation.h"
 
 Simulation create_simulation(std::string filename,int n_villages)
@@ -16,6 +17,9 @@ Simulation create_simulation(std::string filename,int n_villages)
   for (int i =0; i < n_villages; i++){
     parameters = read_from_file(filename);
     population = create_population(parameters.nhosts,2.0,parameters.k,0.0,0.0);
+    set_prevalence(population);
+    set_meanburden(population);
+
 
     villages.push_back(population);
     params.push_back(parameters);
@@ -23,6 +27,57 @@ Simulation create_simulation(std::string filename,int n_villages)
 
   sim.populations = villages;
   sim.parameters = params;
+
+  return sim;
+}
+
+Simulation load_from_map(std::string map_filename, std::string param_filename)
+{
+  int pop;
+  double x;
+  double y;
+  double contact_rate;
+  Parameters parameters;
+  Population population;
+  std::vector<Population> villages;
+  std::vector<Parameters> params;
+  Simulation sim;
+  std::ifstream myfile (map_filename);
+  gsl_rng * rando;
+  const gsl_rng_type * T;
+  gsl_rng_env_setup();
+  T = gsl_rng_default;
+  rando = gsl_rng_alloc(T);
+  gsl_rng_set(rando,123);
+
+  if (myfile.is_open())
+  {
+    std::string line;
+    while (getline(myfile, line))
+    {
+      std::istringstream iss(line);
+      iss >> x >> y >> pop;
+
+      //std::cout << pop << "\n";
+      parameters = read_from_file(param_filename);
+      contact_rate = exp(-1.0*pop/2000.0)*gsl_ran_flat(rando,0.0,0.00035);
+      parameters.contact_rate = contact_rate;
+      //std::cout << parameters.nhosts << "\n";
+      //population = create_population(parameters.nhosts,2.0,parameters.k,0.0,0.0);
+      population = create_population(pop,2.0,parameters.k,x,y);
+      set_prevalence(population);
+      set_meanburden(population);
+
+      villages.push_back(population);
+      params.push_back(parameters);
+
+      //std::cout << population.mean_burden << "\n";
+    }
+    sim.populations = villages;
+    sim.parameters = params;
+  }
+
+
 
   return sim;
 }
@@ -39,7 +94,7 @@ void evolve_population(Population &population,Parameters &parameters, int timest
   double dt = 1.0/12.0;
   double t = 0.0;
 
-  index = population.location_x + 10*population.location_y;
+  //index = population.location_x + 10*population.location_y;
 
   gsl_rng_env_setup();
   T = gsl_rng_default;
@@ -53,7 +108,6 @@ void evolve_population(Population &population,Parameters &parameters, int timest
 
     // depletion of reservoir
     population.reservoir = (population.reservoir*(1.0-1.0*dt));
-    //population.reservoir = 10.0;
 
     // loop over hosts
     for (int j=0; j < nhosts; j++)
@@ -102,7 +156,6 @@ void evolve_population(Population &population,Parameters &parameters, int timest
       } else {
         births = (int) (rate + gsl_ran_gaussian(rando,sqrt(rate)));
       }
-      //std::cout << births << " \n";
       population.hosts[j].burden.female_worms += births;
 
       if (rate < 10E3) {
@@ -116,7 +169,6 @@ void evolve_population(Population &population,Parameters &parameters, int timest
 
       // egg/larvae production
       total_worms = population.hosts[j].burden.male_worms + population.hosts[j].burden.female_worms;
-      //m = std::exp(-1.0 * parameters.gamma * total_worms) * dt;
       population.hosts[j].burden.eggs = (int) parameters.fecundity * std::min(population.hosts[j].burden.male_worms,population.hosts[j].burden.female_worms) * exp(-1.0 * parameters.gamma * total_worms);
 
       m = parameters.fecundity * std::min(population.hosts[j].burden.male_worms,population.hosts[j].burden.female_worms) * exp(-1.0 * parameters.gamma * total_worms);
@@ -136,7 +188,7 @@ void evolve_population(Population &population,Parameters &parameters, int timest
 
       population.hosts[j].burden.eggs_test  =  0.5*(gsl_ran_poisson(rando,m)+gsl_ran_poisson(rando,m));
       // contribution to reservoir
-      population.reservoir += population.hosts[j].burden.eggs;
+      population.reservoir += population.hosts[j].burden.eggs*dt;
     }
 
 
@@ -178,11 +230,10 @@ void evolve_populations(Simulation &sim,int timesteps)
       {
         if (k != j){
           dist = pow(pow(sim.populations[j].location_x - sim.populations[k].location_x,2.0) + pow(sim.populations[j].location_y -sim.populations[k].location_y,2.0),0.5);
-          temp += sim.populations[k].reservoir / 1000.0 * pow(dist,-2.0);
+          temp += sim.populations[k].reservoir * pow(dist,-2.0);
         }
       }
-      //std::cout<<temp<<"\n";
-      sim.populations[j].reservoir += temp;
+      sim.populations[j].reservoir += sim.parameters[j].spat_kernel_magnitude * temp;
     }
 
     if ((i%12 == 0))
