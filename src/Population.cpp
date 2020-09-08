@@ -70,6 +70,6 @@ Population create_population(int nhosts, double m, double k, double x, double y)
   population.location_x = x;
   population.location_y = y;
 
-
+  gsl_rng_free(rando);
   return population;
 };

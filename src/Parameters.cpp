@@ -3,11 +3,19 @@
 double read_line(std::ifstream& myfile)
 {
     std::string line;
+    std::string token;
+    std::size_t found;
+    std::string delim;
+    double out = 0.0;
+
     getline (myfile,line);
     //cout << "reading line :" << line << '\n';
-    std::string token = line.substr(0, line.find(':'));
+    delim = ":";
+    found = line.find(delim);
+    token = line.substr(0, found);
+    out = stod(token);
     //cout << "token :" << token << '\n';
-    return stod(token);
+    return out;
 };
 
 Parameters read_from_file(std::string filename)

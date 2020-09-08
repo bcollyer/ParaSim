@@ -5,6 +5,7 @@ using namespace std;
 
 int main(int argc, const char * argv[]) {
 
+    /*
     if(argc==1){
       cout<<"No scenario selected";
       return 0;
@@ -15,5 +16,8 @@ int main(int argc, const char * argv[]) {
     if(atoi(argv[1])==1){
       scenario_swz();
     }
+    return 0;
+    */
+    scenario_swz();
     return 0;
 }

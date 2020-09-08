@@ -78,21 +78,22 @@ Simulation load_from_map(std::string map_filename, std::string param_filename)
   }
 
 
-
+  gsl_rng_free(rando);
   return sim;
 }
 
-void evolve_population(Population &population,Parameters &parameters, int timesteps)
+void evolve_population(Population &population,Parameters &parameters, int timesteps, int index)
 {
   // Set up random number generation
   gsl_rng * rando;
   const gsl_rng_type * T;
-  int index;
-  double rate, m, p, k;
+  double rate = 0.0;
+  double m, p, k;
   int deaths, births, total_worms;
   int nhosts;
   double dt = 1.0/12.0;
   double t = 0.0;
+  double death_check = 0.0;
 
   //index = population.location_x + 10*population.location_y;
 
@@ -116,7 +117,8 @@ void evolve_population(Population &population,Parameters &parameters, int timest
       population.hosts[j].age += dt;
 
       // human death and replacement birth
-      if (gsl_ran_flat(rando,0,1) < (1.0 - exp(-1.0 * parameters.human_death_rate * dt))) {
+      death_check = gsl_ran_flat(rando,0,1);
+      if (death_check < (1.0 - exp(-1.0 * parameters.human_death_rate * dt))) {
         population.hosts[j].age = 0.0;
         Burden burden;
         burden.male_worms = 0;
@@ -208,11 +210,13 @@ void evolve_population(Population &population,Parameters &parameters, int timest
     //std::cout << "  " << population.mean_burden << " "<<population.prevalence<<"\n";
 
   }
+  gsl_rng_free(rando);
 }
 
 void evolve_populations(Simulation &sim,int timesteps)
 {
   int n;
+  int out_freq = 0;
   double temp, dist;
 
   n = sim.populations.size();
@@ -220,7 +224,7 @@ void evolve_populations(Simulation &sim,int timesteps)
   {
     for (int j = 0; j < n; j++)
     {
-      evolve_population(sim.populations[j],sim.parameters[j],1);
+      evolve_population(sim.populations[j],sim.parameters[j],1,j);
     }
 
     for (int j = 0; j < n; j++)
@@ -236,7 +240,8 @@ void evolve_populations(Simulation &sim,int timesteps)
       sim.populations[j].reservoir += sim.parameters[j].spat_kernel_magnitude * temp;
     }
 
-    if ((i%12 == 0))
+    out_freq = i%12;
+    if (out_freq == 0)
     {
       std::cout << i << " ";
       output_prevalence(sim);
