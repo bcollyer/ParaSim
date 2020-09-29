@@ -1,3 +1,7 @@
+#include <fstream>
+#include <string>
+#include <iostream>
+
 #include "Parameters.h"
 
 double read_line(std::ifstream& myfile)
@@ -9,7 +13,6 @@ double read_line(std::ifstream& myfile)
     double out = 0.0;
 
     getline (myfile,line);
-    //cout << "reading line :" << line << '\n';
     delim = ":";
     found = line.find(delim);
     token = line.substr(0, found);

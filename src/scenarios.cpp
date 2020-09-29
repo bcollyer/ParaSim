@@ -1,4 +1,8 @@
+#include <iostream>
+#include <filesystem>
+#include "Simulation.h"
 #include "scenarios.h"
+
 //#include "Simulation.h"
 
 void scenario_square()
@@ -65,9 +69,15 @@ void scenario_swz()
 {
   Simulation sim;
   std::vector<Simulation> simulations;
+  int n;
 
   sim = load_from_map("./data/swz.txt","./data/params.txt");
   std::cout<<"loaded map\n";
   evolve_populations(sim,12*50);
 
+  // free rngs
+  n = sim.populations.size();
+  for(int i=0; i < n ; i++){
+    gsl_rng_free(sim.populations[i].rando);
+  }
 }

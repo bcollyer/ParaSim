@@ -1,6 +1,5 @@
-#include <fstream>
-#include <string>
-#include <iostream>
+#ifndef PARAMETERS_H
+#define PARAMETERS_H
 
 
 struct Parameters
@@ -18,3 +17,5 @@ struct Parameters
 
 double read_line(std::ifstream& myfile);
 Parameters read_from_file(std::string filename);
+
+#endif

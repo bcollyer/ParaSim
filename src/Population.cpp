@@ -1,7 +1,8 @@
+#include <iostream>
+#include <fstream>
+
+#include "Person.h"
 #include "Population.h"
-
-
-
 
 void set_prevalence(Population &population)
 {
@@ -34,42 +35,43 @@ void set_meanburden(Population &population){
   population.mean_burden = 1.0*meanburden/n_hosts;
 };
 
-Population create_population(int nhosts, double m, double k, double x, double y)
+Population create_population(int nhosts, double m, double k, double x, double y,int index)
 {
   // Set up random number generation
-  gsl_rng * rando;
-  const gsl_rng_type * T;
-  Population population;
+  //gsl_rng * rando;
+  //const gsl_rng_type * T;
+  Population pop;
   std::vector<Person> hosts;
+  std::vector< std::vector<int> > temp_hosts;
   double rate;
 
   gsl_rng_env_setup();
-  T = gsl_rng_default;
-  rando = gsl_rng_alloc(T);
-  gsl_rng_set(rando,time(0));
+  pop.T = gsl_rng_default;
+  pop.rando = gsl_rng_alloc(pop.T);
+  gsl_rng_set(pop.rando,time(0)+index);
 
   for (int i = 0; i < nhosts; i++){
     Person person;
     Burden burden;
+    //std::cout << i << "\n";
+    person.age = 1.0;
+    person.home = 1;
 
-    person.age = 10.0;
-    person.risk = gsl_ran_gamma(rando,k,1.0/k);
-
+    person.risk = gsl_ran_gamma(pop.rando,k,1.0/k);
     rate = 0.5 * person.risk * m;
-    burden.male_worms = gsl_ran_poisson(rando,rate);
-    burden.female_worms = gsl_ran_poisson(rando,rate);
-    burden.eggs = gsl_ran_poisson(rando,rate);
-    burden.eggs_test = gsl_ran_poisson(rando,rate);
-
-
+    burden.male_worms = gsl_ran_poisson(pop.rando,rate);
+    burden.female_worms = gsl_ran_poisson(pop.rando,rate);
+    burden.eggs = gsl_ran_poisson(pop.rando,rate);
+    burden.eggs_test = gsl_ran_poisson(pop.rando,rate);
     person.burden = burden;
     hosts.push_back(person);
   };
-  population.hosts = hosts;
-  population.reservoir = 1000.0;
-  population.location_x = x;
-  population.location_y = y;
+  pop.hosts = hosts;
+  pop.reservoir = 1000.0;
+  pop.location_x = x;
+  pop.location_y = y;
+  pop.temp_hosts = temp_hosts;
 
-  gsl_rng_free(rando);
-  return population;
+  //gsl_rng_free(rando);
+  return pop;
 };
